@@ -29,7 +29,47 @@ namespace MadsKristensen.EditorExtensions
             if (!EnsureInitialized())
                 return false;
 
+            int position = TextView.Caret.Position.BufferPosition.Position;
+            ParseItem item = _sheet.ItemBeforePosition(position);
+
+            var variable = item.FindAncestor<LessVariableReference>();
+            if (variable != null)
+            {
+                if (variable.IsArgumentsVariable())
+                    return false;
+                if (variable.IsInMixinBody())
+                {
+                    var parentMixin = variable.FindAncestor<LessMixinDeclaration>();
+                    var argDef = parentMixin.Arguments.FirstOrDefault(a => a.Variable.VariableName.Name.Text == variable.Variable.Name.Text);
+                    GoTo(argDef);
+                    return true;
+                }
+
+                var def = _sheet.Variables.FirstOrDefault(d => d.VariableName.Name.Text == variable.Variable.Name.Text);
+                if (def == null)
+                    return false;
+                GoTo(def);
+                return true;
+            }
+
+            var mixin = item.FindAncestor<LessMixinReference>();
+            if (mixin != null)
+            {
+                // TODO: How can I find the list of mixins?
+                var def = _sheet.MixinReferences.FirstOrDefault(d => d.MixinName.Name == mixin.MixinName.Name);
+                if (def == null)
+                    return false;
+                GoTo(def);
+                return true;
+            }
+
             return true;
+        }
+
+        private void GoTo(ParseItem item)
+        {
+            //TODO: How do I open the preview tab?
+            System.Windows.MessageBox.Show(item.Text+"\r\n"+item.Range.Start);
         }
 
         public bool EnsureInitialized()

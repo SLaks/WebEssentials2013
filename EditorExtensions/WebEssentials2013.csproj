@@ -386,6 +386,7 @@
     <Compile Include="ErrorTags\Filters\MsFilterCssErrorFilter.cs" />
     <Compile Include="ErrorTags\Filters\MsKeyframesCssErrorFilter.cs" />
     <Compile Include="ExtensionMethods\AtDirectiveExtensions.cs" />
+    <Compile Include="ExtensionMethods\ParseItemExtensions.cs" />
     <Compile Include="ExtensionMethods\IVsExtensions.cs" />
     <Compile Include="Commands\JavaScript\JsHintRunner.cs" />
     <Compile Include="ExtensionMethods\PseudoExtensions.cs" />
