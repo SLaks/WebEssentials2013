@@ -41,6 +41,8 @@ namespace MadsKristensen.EditorExtensions
             textView.Properties.GetOrCreateSingletonProperty<CssSelectBrowsers>(() => new CssSelectBrowsers(textViewAdapter, textView));
             textView.Properties.GetOrCreateSingletonProperty<RetriggerTarget>(() => new RetriggerTarget(textViewAdapter, textView, CompletionBroker));
 
+            textView.Properties.GetOrCreateSingletonProperty<LessGoToDefinition>(() => new LessGoToDefinition(textViewAdapter, textView));
+
             uint cssFormatProperties;
             EditorExtensionsPackage.PriorityCommandTarget.RegisterPriorityCommandTarget(0, new CssFormatProperties(textView), out cssFormatProperties);
             textView.Closed += delegate { EditorExtensionsPackage.PriorityCommandTarget.UnregisterPriorityCommandTarget(cssFormatProperties); };
