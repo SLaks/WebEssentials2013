@@ -39,6 +39,7 @@ namespace MadsKristensen.EditorExtensions
                     return false;
                 if (variable.IsInMixinBody())
                 {
+                    // TODO: Find a RuleSet that has a LessMixinDeclaration as a SubSelector
                     var parentMixin = variable.FindAncestor<LessMixinDeclaration>();
                     var argDef = parentMixin.Arguments.FirstOrDefault(a => a.Variable.VariableName.Name.Text == variable.Variable.Name.Text);
                     GoTo(argDef);
@@ -55,8 +56,9 @@ namespace MadsKristensen.EditorExtensions
             var mixin = item.FindAncestor<LessMixinReference>();
             if (mixin != null)
             {
-                // TODO: How can I find the list of mixins?
-                var def = _sheet.MixinReferences.FirstOrDefault(d => d.MixinName.Name == mixin.MixinName.Name);
+                var subSelectors = _sheet.RuleSets.SelectMany(s => s.Selectors).SelectMany(s => s.SimpleSelectors).SelectMany(s => s.SubSelectors);
+                var def = subSelectors.OfType<LessMixinDeclaration>().FirstOrDefault(d => d.MixinName.Name == mixin.MixinName.Name)
+                        ?? subSelectors.FirstOrDefault(d => d.Text == mixin.MixinName.Name);  // Normal classes can also be used as mixins
                 if (def == null)
                     return false;
                 GoTo(def);
@@ -69,7 +71,7 @@ namespace MadsKristensen.EditorExtensions
         private void GoTo(ParseItem item)
         {
             //TODO: How do I open the preview tab?
-            System.Windows.MessageBox.Show(item.Text+"\r\n"+item.Range.Start);
+            System.Windows.MessageBox.Show(item.Text + "\r\n" + item.Range.Start);
         }
 
         public bool EnsureInitialized()
