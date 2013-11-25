@@ -41,7 +41,10 @@ namespace MadsKristensen.EditorExtensions
             Span span = new Span(0, buffer.CurrentSnapshot.Length);
             buffer.Replace(span, result);
 
-            TextView.Selection.Select(new SnapshotSpan(selection.Value, 0), false);
+            TextView.Selection.Select(
+                TextView.BufferGraph.MapUpToBuffer(new SnapshotSpan(selection.Value, 0), SpanTrackingMode.EdgeNegative, TextView.TextBuffer)[0],
+                false
+            );
 
             EditorExtensionsPackage.DTE.ExecuteCommand("Edit.FormatDocument");
             EditorExtensionsPackage.DTE.UndoContext.Close();
