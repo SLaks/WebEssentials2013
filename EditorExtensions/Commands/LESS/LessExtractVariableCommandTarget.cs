@@ -21,14 +21,11 @@ namespace MadsKristensen.EditorExtensions
 
         protected override bool Execute(uint commandId, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if (TextView == null)
+            var point = TextView.GetSelection("LESS");
+            if (point == null)
                 return false;
-
-            CssEditorDocument document = CssEditorDocument.FromTextBuffer(TextView.TextBuffer);
-
-            int position = TextView.Caret.Position.BufferPosition.Position;
-            ParseItem item = document.Tree.StyleSheet.ItemBeforePosition(position);
-
+            var tree = CssEditorDocument.FromTextBuffer(point.Value.Snapshot.TextBuffer);
+            ParseItem item = tree.StyleSheet.ItemBeforePosition(point.Value);
             ParseItem rule = FindParent(item);
             string text = item.Text;
             string name = Microsoft.VisualBasic.Interaction.InputBox("Name of the variable", "Web Essentials");
@@ -67,7 +64,7 @@ namespace MadsKristensen.EditorExtensions
         protected override bool IsEnabled()
         {
             var span = TextView.Selection.SelectedSpans[0];
-            return span.Length > 0 && !span.GetText().Contains("\r");
+            return span.Length > 0 && !span.GetText().Contains("\n") && TextView.GetSelection("LESS") != null;
         }
     }
 }

@@ -17,7 +17,6 @@ namespace MadsKristensen.EditorExtensions
     internal class CssAddMissingStandard : CommandTargetBase
     {
         private DTE2 _dte;
-        private readonly string[] _supported = new[] { "CSS", "LESS" };
 
         public CssAddMissingStandard(IVsTextView adapter, IWpfTextView textView)
             : base(adapter, textView, GuidList.guidCssCmdSet, PkgCmdIDList.addMissingStandard)
@@ -27,12 +26,14 @@ namespace MadsKristensen.EditorExtensions
 
         protected override bool Execute(uint commandId, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            ITextBuffer buffer = TextView.TextBuffer;
-            CssEditorDocument doc = new CssEditorDocument(buffer);
+            var selection = TextView.GetSelection("css");
+            if (selection == null) return false;
+
+            ITextBuffer buffer = selection.Value.Snapshot.TextBuffer;
+            CssEditorDocument doc = CssEditorDocument.FromTextBuffer(buffer);
             ICssSchemaInstance rootSchema = CssSchemaManager.SchemaManager.GetSchemaRoot(null);
 
-            StringBuilder sb = new StringBuilder(buffer.CurrentSnapshot.Length);
-            sb.Append(buffer.CurrentSnapshot.GetText());
+            StringBuilder sb = new StringBuilder(buffer.CurrentSnapshot.GetText());
 
             EditorExtensionsPackage.DTE.UndoContext.Open("Add Missing Standard Property");
 
@@ -40,8 +41,7 @@ namespace MadsKristensen.EditorExtensions
             Span span = new Span(0, buffer.CurrentSnapshot.Length);
             buffer.Replace(span, result);
 
-            var selection = EditorExtensionsPackage.DTE.ActiveDocument.Selection as TextSelection;
-            selection.GotoLine(1);
+            TextView.Selection.Select(new SnapshotSpan(selection.Value, 0), false);
 
             EditorExtensionsPackage.DTE.ExecuteCommand("Edit.FormatDocument");
             EditorExtensionsPackage.DTE.UndoContext.Close();
@@ -92,14 +92,7 @@ namespace MadsKristensen.EditorExtensions
 
         protected override bool IsEnabled()
         {
-            var buffer = ProjectHelpers.GetCurentTextBuffer();
-
-            if (buffer != null && _supported.Contains(buffer.ContentType.DisplayName.ToUpperInvariant()))
-            {
-                return true;
-            }
-
-            return false;
+            return TextView.GetSelection("css").HasValue;
         }
     }
 }

@@ -5,13 +5,14 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.Linq;
 using System.Windows.Threading;
+using Microsoft.VisualStudio.Text;
 
 namespace MadsKristensen.EditorExtensions
 {
     internal abstract class CommandTargetBase : IOleCommandTarget
     {
         private IOleCommandTarget _nextCommandTarget;
-        protected IWpfTextView TextView;
+        protected readonly IWpfTextView TextView;
 
         public Guid CommandGroup { get; set; }
         public uint[] CommandIds { get; set; }

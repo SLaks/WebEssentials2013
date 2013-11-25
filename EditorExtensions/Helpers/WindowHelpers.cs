@@ -3,6 +3,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
@@ -10,6 +11,7 @@ namespace MadsKristensen.EditorExtensions
 {
     public static class WindowHelpers
     {
+
         /// <summary>
         /// Returns an IVsTextView for the given file path, if the given file is open in Visual Studio.
         /// </summary>

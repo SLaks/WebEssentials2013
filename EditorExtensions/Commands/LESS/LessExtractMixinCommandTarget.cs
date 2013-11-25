@@ -20,13 +20,11 @@ namespace MadsKristensen.EditorExtensions
 
         protected override bool Execute(uint commandId, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if (TextView == null)
+            var point = TextView.GetSelection("LESS");
+            if (point == null)
                 return false;
-
-            CssEditorDocument document = CssEditorDocument.FromTextBuffer(TextView.TextBuffer);
-
-            int position = TextView.Caret.Position.BufferPosition.Position;
-            ParseItem item = document.Tree.StyleSheet.ItemBeforePosition(position);
+            var tree = CssEditorDocument.FromTextBuffer(point.Value.Snapshot.TextBuffer);
+            ParseItem item = tree.StyleSheet.ItemBeforePosition(point.Value);
 
             ParseItem rule = LessExtractVariableCommandTarget.FindParent(item);
             int mixinStart = rule.Start;
@@ -37,7 +35,7 @@ namespace MadsKristensen.EditorExtensions
                 EditorExtensionsPackage.DTE.UndoContext.Open("Extract to mixin");
 
                 var selection = TextView.Selection.SelectedSpans[0];
-                string text = selection.GetText();
+                string text = TextView.Selection.SelectedSpans[0].GetText();
                 TextView.TextBuffer.Replace(selection.Span, "." + name + "();");
                 TextView.TextBuffer.Insert(rule.Start, "." + name + "() {" + Environment.NewLine + text + Environment.NewLine + "}" + Environment.NewLine + Environment.NewLine);
 
@@ -55,7 +53,7 @@ namespace MadsKristensen.EditorExtensions
 
         protected override bool IsEnabled()
         {
-            return TextView.Selection.SelectedSpans[0].Length > 0;
+            return TextView.Selection.SelectedSpans[0].Length > 0 && TextView.GetSelection("LESS") != null;
         }
     }
 }
