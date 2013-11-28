@@ -31,7 +31,7 @@ namespace MadsKristensen.EditorExtensions
             if (attr == null || (attr.Name != "href" && attr.Name != "src"))
                 return;
 
-            string url = ImageQuickInfo.GetFileName(attr.Value.Trim('\'', '"').TrimStart('~'), session.TextView.TextBuffer);
+            string url = ImageQuickInfo.GetFileName(attr.Value, session.TextView.TextBuffer);
             if (string.IsNullOrEmpty(url))
                 return;
 

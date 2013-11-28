@@ -86,10 +86,10 @@ namespace MadsKristensen.EditorExtensions
         {
             if (!string.IsNullOrEmpty(text))
             {
-                if (text.StartsWith("data:", StringComparison.Ordinal))
-                    return text;
-
                 string imageUrl = text.Trim(new[] { '\'', '"' });
+
+                if (imageUrl.StartsWith("data:", StringComparison.Ordinal))
+                    return text;
 
                 string filePath = string.Empty;
 
