@@ -36,7 +36,7 @@ namespace MadsKristensen.EditorExtensions.BrowserLink.Menu
         }
 
         [BrowserLinkCallback] // This method can be called from JavaScript
-        public void ToggleVisibility(bool visible)
+        public static void ToggleVisibility(bool visible)
         {
             Settings.SetValue(WESettings.Keys.BrowserLink_ShowMenu, visible);
             Settings.Save();

@@ -49,7 +49,7 @@ namespace MadsKristensen.EditorExtensions
         }
 
         [BrowserLinkCallback]
-        public void UpdateSource(string innerHtml, string file, int position)
+        public static void UpdateSource(string innerHtml, string file, int position)
         {
             EditorExtensionsPackage.DTE.ItemOperations.OpenFile(file);
 
@@ -108,7 +108,7 @@ namespace MadsKristensen.EditorExtensions
         }
 
         [BrowserLinkCallback]
-        public void Undo()
+        public static void Undo()
         {
             try
             {
@@ -122,7 +122,7 @@ namespace MadsKristensen.EditorExtensions
         }
 
         [BrowserLinkCallback]
-        public void Redo()
+        public static void Redo()
         {
             try
             {
@@ -136,7 +136,7 @@ namespace MadsKristensen.EditorExtensions
         }
 
         [BrowserLinkCallback]
-        public void Save()
+        public static void Save()
         {
             if (EditorExtensionsPackage.DTE.ActiveDocument != null && !EditorExtensionsPackage.DTE.ActiveDocument.Saved)
             {

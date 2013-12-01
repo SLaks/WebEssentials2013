@@ -74,7 +74,7 @@ namespace MadsKristensen.EditorExtensions
         }
 
         [BrowserLinkCallback]
-        public void DisableInspectMode()
+        public static void DisableInspectMode()
         {
             _instance = null;
         }
