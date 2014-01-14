@@ -32,7 +32,7 @@ namespace MadsKristensen.EditorExtensions
             return Task.WhenAll(sourceFiles.Select(async sourceFile =>
             {
                 string compiledFile = MarginBase.GetCompiledFileName(sourceFile, CompileToExtension, CompileToLocation);
-                var result = await Compiler.Compile(sourceFile, compiledFile);
+                var result = await Compiler.CompileAsync(sourceFile, compiledFile);
 
                 if (result == null)
                     return;
