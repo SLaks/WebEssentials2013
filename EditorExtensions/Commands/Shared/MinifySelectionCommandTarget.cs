@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using EnvDTE80;
+using MadsKristensen.EditorExtensions.Optimization.Minification;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
@@ -8,27 +10,24 @@ namespace MadsKristensen.EditorExtensions
 {
     internal class MinifySelection : CommandTargetBase
     {
-        private DTE2 _dte;
 
         public MinifySelection(IVsTextView adapter, IWpfTextView textView)
             : base(adapter, textView, CommandGuids.guidMinifyCmdSet, CommandId.MinifySelection)
         {
-            _dte = EditorExtensionsPackage.DTE;
         }
 
+        SnapshotSpan? span;
         protected override bool Execute(CommandId commandId, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if (TextView != null)
-            {
-                string content = TextView.Selection.SelectedSpans[0].GetText();
-                string extension = Path.GetExtension(_dte.ActiveDocument.FullName).ToLowerInvariant();
-                string result = MinifyFileMenu.MinifyString(extension, content);
+            if (span == null)
+                return false;
+            string result = Mef.GetImport<IFileMinifier>(span.Value.Snapshot.TextBuffer.ContentType)
+                               .MinifyString(span.Value.GetText());
 
-                if (result != content)
-                {
-                    using (EditorExtensionsPackage.UndoContext(("Minify")))
-                        TextView.TextBuffer.Replace(TextView.Selection.SelectedSpans[0].Span, result);
-                }
+            if (result != null)
+            {
+                using (EditorExtensionsPackage.UndoContext(("Minify")))
+                    TextView.TextBuffer.Replace(span.Value.Span, result);
             }
 
             return true;
@@ -37,13 +36,9 @@ namespace MadsKristensen.EditorExtensions
         protected override bool IsEnabled()
         {
             // Don't minify Markdown
-            if (TextView.GetSelection("Markdown").HasValue)
-                return false;
-
-            if (TextView != null && TextView.Selection.SelectedSpans.Count > 0)
-                return TextView.Selection.SelectedSpans[0].Length > 0;
-
-            return false;
+            span = TextView.GetSelectedSpan(c => !c.IsOfType("Markdown")
+                                              && Mef.GetImport<IFileMinifier>(c) != null);
+            return span.HasValue;
         }
     }
 }
