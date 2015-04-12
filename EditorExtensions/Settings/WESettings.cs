@@ -396,7 +396,7 @@ namespace MadsKristensen.EditorExtensions.Settings
         #endregion
     }
 
-    public sealed class CssSettings : SettingsBase<CssSettings>, IMinifierSettings, IAutoprefixerSettings, IBundleSettings
+    public sealed class CssSettings : SettingsBase<CssSettings>, IMinifierSettings, IBundleSettings
     {
         #region Autoprefixer
         [Category("Autoprefixer")]
@@ -774,12 +774,6 @@ namespace MadsKristensen.EditorExtensions.Settings
     {
         bool AutoMinify { get; set; }
         bool GzipMinifiedFiles { get; }
-    }
-
-    public interface IAutoprefixerSettings
-    {
-        bool Autoprefix { get; set; }
-        string AutoprefixerBrowsers { get; }
     }
 
     public enum WarningLocation

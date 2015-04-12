@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Linq;
+using MadsKristensen.EditorExtensions.Settings;
 using Microsoft.CSS.Core;
 using Microsoft.CSS.Editor.Schemas;
 using Microsoft.CSS.Editor.SyntaxCheck;
+using Microsoft.Less.Core;
+using Microsoft.Scss.Core;
 using Microsoft.VisualStudio.Utilities;
 
 namespace MadsKristensen.EditorExtensions.Css
@@ -19,6 +22,9 @@ namespace MadsKristensen.EditorExtensions.Css
 
         public ItemCheckResult CheckItem(ParseItem item, ICssCheckerContext context)
         {
+            if (WESettings.Instance.Css.Autoprefix && (item.StyleSheet is LessStyleSheet || item.StyleSheet is ScssStyleSheet))
+                return ItemCheckResult.CancelCurrentItem;
+
             Declaration dec = (Declaration)item;
 
             if (!dec.IsValid || dec.IsVendorSpecific() || IgnoreProperty(dec) || context == null)
