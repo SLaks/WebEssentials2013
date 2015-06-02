@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.Composition;
 using System.Globalization;
+using System.Threading.Tasks;
+using System.Web;
 using MadsKristensen.EditorExtensions.RtlCss;
 using MadsKristensen.EditorExtensions.Settings;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.Web.Editor;
-using System.Threading.Tasks;
-using System.Web;
+using System.IO;
 
 namespace MadsKristensen.EditorExtensions.Scss
 {
@@ -21,6 +22,15 @@ namespace MadsKristensen.EditorExtensions.Scss
 
         public override async Task<CompilerResult> CompileAsync(string sourceFileName, string targetFileName)
         {
+            //dont compile files that start with _
+            //http://sass-lang.com/documentation/file.SASS_REFERENCE.html#partials
+
+            if (Path.GetFileName(sourceFileName).StartsWith("_"))
+            {
+                Logger.Log(string.Format("Ignoring {0}, see http://sass-lang.com/documentation/file.SASS_REFERENCE.html#partials", sourceFileName));
+                return CompilerResult.GenerateResult(sourceFileName, targetFileName, "", true, "", "", null, true);
+            }
+
             if (WESettings.Instance.Scss.UseRubyRuntime)
             {
                 await RubyScssServer.Up();
@@ -45,8 +55,8 @@ namespace MadsKristensen.EditorExtensions.Scss
             else
             {
                 parameters.Add("service", "RubySCSS");
-                parameters.Add("rubyAuth",  HttpUtility.UrlEncode(RubyScssServer.AuthenticationToken));
-                parameters.Add("rubyPort", RubyScssServer.Port.ToString());
+                parameters.Add("rubyAuth", HttpUtility.UrlEncode(RubyScssServer.AuthenticationToken));
+                parameters.Add("rubyPort", RubyScssServer.Port.ToString(CultureInfo.InvariantCulture));
             }
 
             parameters.Add("sourceFileName", sourceFileName);

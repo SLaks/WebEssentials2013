@@ -1,9 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
   <PropertyGroup>
-    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <TargetVisualStudioVersion>12.0</TargetVisualStudioVersion>
+    
+    <!-- Including the specific version of the SDK targets will deploy to that version even when building a later version. -->
+    <VSToolsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(TargetVisualStudioVersion)</VSToolsPath>
+    
+    <!-- However, we still need to calculate DevEnvDir by hand to locate referenced VS assemblies from the target version. -->
+    <VSINSTALLDIR>$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\SxS\VS7@$(TargetVisualStudioVersion))</VSINSTALLDIR>
+    <VSINSTALLDIR Condition="'$(VSINSTALLDIR)' == ''">$(registry:HKEY_CURRENT_USER\SOFTWARE\Microsoft\VisualStudio\SxS\VS7@12.0)</VSINSTALLDIR>
+    <VSINSTALLDIR Condition="'$(VSINSTALLDIR)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7@12.0)</VSINSTALLDIR>
+    <VSINSTALLDIR Condition="'$(VSINSTALLDIR)' == ''">$(registry:HKEY_CURRENT_USER\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7@12.0)</VSINSTALLDIR>
+    <TargetDevEnvDir>$(VSINSTALLDIR)\Common7\IDE</TargetDevEnvDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- Necessary to open the project in any version of VS. -->
+    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <SccProjectName>
     </SccProjectName>
     <SccLocalPath>
@@ -33,7 +45,7 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <StartAction>Program</StartAction>
-    <StartProgram>$(DevEnvDir)\devenv.exe</StartProgram>
+    <StartProgram>$(TargetDevEnvDir)\devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>
     <ZipPackageCompressionLevel>Normal</ZipPackageCompressionLevel>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -42,9 +54,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>Source.extension.vsixmanifest</ApplicationManifest>
-  </PropertyGroup>
-  <PropertyGroup>
-    <DelaySign>false</DelaySign>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -86,10 +95,27 @@
     <CopyVsixExtensionFiles>False</CopyVsixExtensionFiles>
     <CopyVsixExtensionLocation>bin/release/new folder</CopyVsixExtensionLocation>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CI|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>CI</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <SignAssembly>true</SignAssembly>
+    <DelaySign>true</DelaySign>
+    <AssemblyOriginatorKeyFile>FinalPublicKey.snk</AssemblyOriginatorKeyFile>
+    <DeployExtension>False</DeployExtension>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AjaxMin, Version=5.10.5260.16959, Culture=neutral, PublicKeyToken=21ef50ce11b5d80f, processorArchitecture=MSIL">
+    <Reference Include="AjaxMin, Version=5.14.5506.26202, Culture=neutral, PublicKeyToken=21ef50ce11b5d80f, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\AjaxMin.5.11.5295.12309\lib\net40\AjaxMin.dll</HintPath>
+      <HintPath>..\packages\AjaxMin.5.14.5506.26202\lib\net40\AjaxMin.dll</HintPath>
+    </Reference>
+    <Reference Include="CommonMark, Version=0.1.0.0, Culture=neutral, PublicKeyToken=001ef8810438905d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\CommonMark.NET.0.8.5\lib\net45\CommonMark.dll</HintPath>
     </Reference>
     <Reference Include="ConfOxide, Version=1.4.0.0, Culture=neutral, PublicKeyToken=934faed64f82030e, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -111,18 +137,14 @@
     <Reference Include="EnvDTE90, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
-    <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\MarkdownSharp.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Collections.Immutable, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.JSON.Core">
-      <HintPath>$(DevEnvDir)\Extensions\Microsoft\Web Tools\Languages\Microsoft.JSON.Core.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\Extensions\Microsoft\Web Tools\Languages\Microsoft.JSON.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.JSON.Editor">
-      <HintPath>$(DevEnvDir)\Extensions\Microsoft\Web Tools\Languages\Microsoft.JSON.Editor.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\Extensions\Microsoft\Web Tools\Languages\Microsoft.JSON.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Practices.TransientFaultHandling.Core">
@@ -130,29 +152,29 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.JSLS, Version=12.0.0.0" />
     <Reference Include="Microsoft.VisualStudio.JSON.Package">
-      <HintPath>$(DevEnvDir)\Extensions\Microsoft\Web Tools\Languages\Microsoft.VisualStudio.JSON.Package.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\Extensions\Microsoft\Web Tools\Languages\Microsoft.VisualStudio.JSON.Package.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=12.0.0.0" />
     <Reference Include="Microsoft.CSS.Core, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(DevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.CSS.Core.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.CSS.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSS.Editor, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(DevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.CSS.Editor.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.CSS.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Html.Core, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(DevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.Html.Core.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.Html.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Html.Editor, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(DevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.Html.Editor.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.Html.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Text.Internal.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Text.Internal.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop.12.0" />
     <Reference Include="Microsoft.VisualStudio.Html.Package" />
@@ -175,12 +197,12 @@
     <Reference Include="Microsoft.VisualStudio.Threading, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Web.BrowserLink.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Web.Extensions">
-      <HintPath>$(DevEnvDir)\Extensions\Microsoft\Web Tools\Languages\Microsoft.VisualStudio.Web.Extensions.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\Extensions\Microsoft\Web Tools\Languages\Microsoft.VisualStudio.Web.Extensions.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Web.Core, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(DevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.Web.Core.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.Web.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Editor, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
@@ -193,7 +215,7 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0" />
     <Reference Include="Microsoft.Web.Editor, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(DevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.Web.Editor.dll</HintPath>
+      <HintPath>$(TargetDevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.Web.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -218,8 +240,9 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="WebMarkupMin.Core">
-      <HintPath>..\packages\WebMarkupMin.Core.0.9.8\lib\net40\WebMarkupMin.Core.dll</HintPath>
+    <Reference Include="WebMarkupMin.Core, Version=0.9.12.0, Culture=neutral, PublicKeyToken=99472178d266584b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebMarkupMin.Core.0.9.12\lib\net40\WebMarkupMin.Core.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="ZenCoding, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -353,6 +376,8 @@
     <Compile Include="HTML\Validation\FoundationColumnsValidator.cs" />
     <Compile Include="HTML\Validation\BootstrapColumnsValidator.cs" />
     <Compile Include="IcedCoffeeScript\ContentType\IcedCoffeeScriptContentTypeDefinition.cs" />
+    <Compile Include="Images\ImageExtensions.cs" />
+    <Compile Include="JavaScript\Completion\GruntTaskCompletionSourceProvider.cs" />
     <Compile Include="JavaScript\MenuItems\Unminify.cs" />
     <Compile Include="JavaScript\Outlining\JavaScriptRegionTagger.cs">
       <SubType>Code</SubType>
@@ -413,6 +438,7 @@
     <Compile Include="Markdown\Classify\MarkdownParser.cs" />
     <Compile Include="SCSS\SmartTags\ScssExtractVariableSmartTagProvider.cs" />
     <Compile Include="Shared\Completion\ColorSwatchIntellisenseProvider.cs" />
+    <Compile Include="Shared\ExtensionMethods\DragDropExtensions.cs" />
     <Compile Include="Shared\ExtensionMethods\TaskExtensions.cs" />
     <Compile Include="Shared\Helpers\AsyncLock.cs" />
     <Compile Include="Shared\Helpers\Policies\PolicyFactory.cs" />
@@ -595,8 +621,6 @@
     <Compile Include="Shared\Helpers\Css\StyleSheetHelpers.cs" />
     <Compile Include="Shared\Helpers\WindowHelpers.cs" />
     <Compile Include="JavaScript\MenuItems\ReferenceJs.cs" />
-    <Compile Include="CSS\NavigateTo\CssGoToLineTag.cs" />
-    <Compile Include="CSS\NavigateTo\CssGoToLineProvider.cs" />
     <Compile Include="Shared\Classify\IconRegistration.cs" />
     <Compile Include="CSS\SmartTags\Actions\RemoveCssRuleSmartTagAction.cs" />
     <Compile Include="CSS\SmartTags\Providers\RemoveCssRuleSmartTagProvider.cs" />
@@ -688,7 +712,6 @@
     <Compile Include="Misc\MenuItems\MinifyFile.cs" />
     <Compile Include="Misc\MenuItems\Diff.cs" />
     <Compile Include="Misc\MenuItems\Transform.cs" />
-    <Compile Include="CSS\NavigateTo\CssGoToLineProviderFactory.cs" />
     <Compile Include="Settings\ProjectSettingsTextViewListener.cs" />
     <Compile Include="HTML\QuickInfo\ImageHtml\ImageQuickInfo.cs" />
     <Compile Include="HTML\QuickInfo\ImageHtml\ImageQuickInfoController.cs" />
@@ -776,7 +799,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <EmbeddedResource Include="BrowserLink\BrowserInfo\BrowserInfo.js" />
-    <None Include="PreBuildTask.cs" />
     <Content Include="Resources\Icons\Bundle.ico">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -993,7 +1015,13 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\BuildTasks\BuildTasks.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Project>{929ebbb6-004e-45c6-91ae-ee495540d2b8}</Project>
+      <Name>BuildTasks</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
   </PropertyGroup>
@@ -1010,17 +1038,9 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <UsingTask TaskName="MadsKristensen.EditorExtensions.PreBuildTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
-    <Task>
-      <Reference Include="Microsoft.CSharp" />
-      <Reference Include="System.IO.Compression" />
-      <Reference Include="System.IO.Compression.FileSystem" />
-      <Reference Include="System.Web.Helpers" />
-      <Code Language="cs" Source="PreBuildTask.cs" />
-    </Task>
-  </UsingTask>
+  <UsingTask TaskName="WebEssentials.BuildTasks.NodeInstaller" AssemblyFile="$(SolutionDir)BuildTasks\bin\$(Configuration)\BuildTasks.dll" />
   <Target Name="BeforeBuild">
-    <MadsKristensen.EditorExtensions.PreBuildTask />
+    <WebEssentials.BuildTasks.NodeInstaller />
     <!-- Copy node.js server and services to tools -->
     <ItemGroup>
       <NodeServerSource Include="$(MSBuildProjectDirectory)\Resources\server\**\*.*" Exclude="$(MSBuildProjectDirectory)\Resources\server\.jshintrc" />
@@ -1033,22 +1053,18 @@
       <Content Include="Resources\nodejs\tools\**" Exclude="&#xD;&#xA; **\node-sass\**; **\less\**; &#xD;&#xA;               **\mocha\**; **\jade\**; &#xD;&#xA;               **\*.md; **\*.markdown; **\*.html; **\*.txt; **\LICENSE; **\README; **\CHANGELOG; **\CNAME; **\*.old; **\*.patch; **\*.ico; &#xD;&#xA;               **\*.json; **\.*; **\Makefile.*; **\Rakefile; **\*.yml; &#xD;&#xA;               **\test.*; **\generate-*; &#xD;&#xA;               **\*.min.js; **\*-min.js; &#xD;&#xA;               **\media\**; **\images\**; **\man\**; &#xD;&#xA;               **\.bin\**; **\benchmark\**; **\build\**; **\scripts\**; &#xD;&#xA;               **\vendor\**; &#xD;&#xA;               **\test\**; **\tst\**; **\tests\**; **\testing\**; &#xD;&#xA;               **\examples\**; **\example\**; **\tools\**\tools\**">
         <IncludeInVSIX>true</IncludeInVSIX>
       </Content>
-      <Content Include="Resources\nodejs\tools\node_modules\node-sass\index.js; Resources\nodejs\tools\node_modules\node-sass\bin\node-sass; Resources\nodejs\tools\node_modules\node-sass\lib\**; Resources\nodejs\tools\node_modules\node-sass\vendor\win32-ia32-*\**; Resources\nodejs\tools\node_modules\tslint\**; Resources\nodejs\tools\node_modules\jscs\**; Resources\nodejs\tools\node_modules\coffeelint\**;    Resources\nodejs\tools\node_modules\rtlcss\lib\**;    Resources\nodejs\tools\node_modules\rtlcss\bin\rtlcss.js;">
+      <Content Include="Resources\nodejs\tools\node_modules\node-sass\bin\node-sass; Resources\nodejs\tools\node_modules\node-sass\lib\**; Resources\nodejs\tools\node_modules\node-sass\vendor\**; Resources\nodejs\tools\node_modules\tslint\**; Resources\nodejs\tools\node_modules\jscs\**; Resources\nodejs\tools\node_modules\coffeelint\**;    Resources\nodejs\tools\node_modules\rtlcss\lib\**;    Resources\nodejs\tools\node_modules\rtlcss\bin\rtlcss.js;">
         <IncludeInVSIX>true</IncludeInVSIX>
       </Content>
-      <Content Include="Resources\nodejs\tools\node_modules\less\lib\**; Resources\nodejs\tools\node_modules\less\bin\**">
-        <IncludeInVSIX>true</IncludeInVSIX>
-      </Content>
-      <!-- Explicit inclusions for CSON -->
-      <Content Include="Resources\nodejs\tools\node_modules\cson\package.json; Resources\nodejs\tools\node_modules\cson\out\**; Resources\nodejs\tools\node_modules\js2coffee\package.json;">
+      <Content Include="Resources\nodejs\tools\node_modules\less\index.js; Resources\nodejs\tools\node_modules\less\lib\**; Resources\nodejs\tools\node_modules\less\bin\**">
         <IncludeInVSIX>true</IncludeInVSIX>
       </Content>
       <!-- Explicitly include JSON files that are actually needed at runtime -->
-      <Content Include="Resources\nodejs\tools\node_modules\htmlparser2\lib\entities\**; Resources\nodejs\tools\node_modules\jshint\package.json; Resources\nodejs\tools\node_modules\node-sass\package.json; Resources\nodejs\tools\node_modules\less\package.json; Resources\nodejs\tools\node_modules\resolve\lib\core.json; Resources\nodejs\tools\node_modules\escodegen\package.json;  Resources\nodejs\tools\node_modules\caniuse-db\**\*.json;">
+      <Content Include="Resources\nodejs\tools\node_modules\htmlparser2\lib\entities\**; Resources\nodejs\tools\node_modules\cson\package.json; Resources\nodejs\tools\node_modules\jshint\package.json; Resources\nodejs\tools\node_modules\node-sass\package.json; Resources\nodejs\tools\node_modules\less\package.json; Resources\nodejs\tools\node_modules\resolve\lib\core.json; Resources\nodejs\tools\node_modules\escodegen\package.json;  Resources\nodejs\tools\node_modules\caniuse-db\**\*.json;">
         <IncludeInVSIX>true</IncludeInVSIX>
       </Content>
       <!-- Explicitly include files that are needed for JsHint -->
-      <Content Include="Resources\nodejs\tools\node_modules\entities\maps\**; Resources\nodejs\tools\node_modules\shelljs\src\test.js;">
+      <Content Include="Resources\nodejs\tools\node_modules\entities\maps\**; Resources\nodejs\tools\node_modules\shelljs\src\**;">
         <IncludeInVSIX>true</IncludeInVSIX>
       </Content>
     </ItemGroup>
